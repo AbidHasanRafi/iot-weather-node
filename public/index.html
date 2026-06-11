@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Weather Station · Engineering Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,300&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <header class="header">
+    <div class="header-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">IOT WEATHER STATION</span>
+        <span class="brand-sub">BMP085 · DHT22 · MQTT STREAM</span>
+      </div>
+    </div>
+
+    <nav class="header-nav">
+      <div class="hud-pill" id="mqttPill">
+        <span class="led" id="mqttLed"></span>
+        <span class="hud-label">MQTT</span>
+        <span class="hud-value" id="mqttText">CONNECTING</span>
+      </div>
+
+      <div class="hud-pill">
+        <span class="hud-label">MSG</span>
+        <span class="hud-value" id="msgCount">0</span>
+      </div>
+
+      <div class="hud-pill">
+        <span class="hud-label">LIVE</span>
+        <span class="led led--small" id="sseLed"></span>
+      </div>
+
+      <div class="hud-pill hud-pill--clock">
+        <span class="hud-label">SYS</span>
+        <span class="hud-value" id="clock">--:--:--</span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ════════════════ ALERT BANNER ════════════════ -->
+  <div class="alert-banner" id="alertBanner">
+    <span class="alert-icon">◈</span>
+    <span id="alertText">STANDBY — Waiting for telemetry from IoT device…</span>
+  </div>
+
+  <!-- ═══════════════════ MAIN ═══════════════════── -->
+  <main class="dashboard">
+
+    <!-- ─── METRIC CARDS ─── -->
+    <section class="metrics-grid">
+
+      <!-- DHT22 Temperature -->
+      <div class="metric-card card--teal" id="card-dht-temp">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="card-head">
+          <span class="sensor-tag">DHT22</span>
+          <span class="channel-label">TEMPERATURE</span>
+          <span class="ch-led" id="ind-dht-temp"></span>
+        </div>
+        <div class="big-value" id="val-dht-temp">--.-</div>
+        <div class="big-unit">°C</div>
+        <div class="card-stats">
+          <div class="cs-item"><div class="cs-key">MIN</div><div class="cs-val" id="min-dht-temp">--</div></div>
+          <div class="cs-item"><div class="cs-key">MAX</div><div class="cs-val" id="max-dht-temp">--</div></div>
+          <div class="cs-item"><div class="cs-key">AVG</div><div class="cs-val" id="avg-dht-temp">--</div></div>
+          <div class="cs-item"><div class="cs-key">CNT</div><div class="cs-val" id="cnt-dht-temp">0</div></div>
+        </div>
+      </div>
+
+      <!-- Humidity -->
+      <div class="metric-card card--blue" id="card-humidity">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="card-head">
+          <span class="sensor-tag">DHT22</span>
+          <span class="channel-label">HUMIDITY</span>
+          <span class="ch-led" id="ind-humidity"></span>
+        </div>
+        <div class="big-value" id="val-humidity">--.-</div>
+        <div class="big-unit">% RH</div>
+        <div class="card-stats">
+          <div class="cs-item"><div class="cs-key">MIN</div><div class="cs-val" id="min-humidity">--</div></div>
+          <div class="cs-item"><div class="cs-key">MAX</div><div class="cs-val" id="max-humidity">--</div></div>
+          <div class="cs-item"><div class="cs-key">AVG</div><div class="cs-val" id="avg-humidity">--</div></div>
+          <div class="cs-item"><div class="cs-key">CNT</div><div class="cs-val" id="cnt-humidity">0</div></div>
+        </div>
+      </div>
+
+      <!-- BMP085 Temperature -->
+      <div class="metric-card card--orange" id="card-bmp-temp">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="card-head">
+          <span class="sensor-tag">BMP085</span>
+          <span class="channel-label">TEMPERATURE</span>
+          <span class="ch-led" id="ind-bmp-temp"></span>
+        </div>
+        <div class="big-value" id="val-bmp-temp">--.-</div>
+        <div class="big-unit">°C</div>
+        <div class="card-stats">
+          <div class="cs-item"><div class="cs-key">MIN</div><div class="cs-val" id="min-bmp-temp">--</div></div>
+          <div class="cs-item"><div class="cs-key">MAX</div><div class="cs-val" id="max-bmp-temp">--</div></div>
+          <div class="cs-item"><div class="cs-key">AVG</div><div class="cs-val" id="avg-bmp-temp">--</div></div>
+          <div class="cs-item"><div class="cs-key">CNT</div><div class="cs-val" id="cnt-bmp-temp">0</div></div>
+        </div>
+      </div>
+
+      <!-- Pressure -->
+      <div class="metric-card card--yellow" id="card-pressure">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="card-head">
+          <span class="sensor-tag">BMP085</span>
+          <span class="channel-label">PRESSURE</span>
+          <span class="ch-led" id="ind-pressure"></span>
+        </div>
+        <div class="big-value big-value--sm" id="val-pressure">----.-</div>
+        <div class="big-unit">hPa</div>
+        <div class="card-stats">
+          <div class="cs-item"><div class="cs-key">MIN</div><div class="cs-val" id="min-pressure">--</div></div>
+          <div class="cs-item"><div class="cs-key">MAX</div><div class="cs-val" id="max-pressure">--</div></div>
+          <div class="cs-item"><div class="cs-key">AVG</div><div class="cs-val" id="avg-pressure">--</div></div>
+          <div class="cs-item"><div class="cs-key">CNT</div><div class="cs-val" id="cnt-pressure">0</div></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ─── TEMPERATURE CHART + LIVE FEED ─── -->
+    <section class="row-2col">
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <span class="panel-title">TEMPERATURE COMPARISON</span>
+          <div class="panel-legend">
+            <span class="leg-item"><span class="leg-swatch" style="background:var(--c-teal)"></span>DHT22</span>
+            <span class="leg-item"><span class="leg-swatch" style="background:var(--c-orange)"></span>BMP085</span>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="tempChart"></canvas>
+        </div>
+      </div>
+
+      <div class="feed-panel">
+        <div class="panel-header">
+          <span class="panel-title">LIVE TELEMETRY FEED</span>
+          <span class="panel-meta" id="feedCount">— records</span>
+        </div>
+        <div class="feed-scroll">
+          <table class="feed-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>T_DHT</th>
+                <th>HUM</th>
+                <th>T_BMP</th>
+                <th>PRESS</th>
+                <th>TIME</th>
+              </tr>
+            </thead>
+            <tbody id="feedBody">
+              <tr class="empty-row"><td colspan="6">Awaiting telemetry…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ─── HUMIDITY + PRESSURE CHARTS ─── -->
+    <section class="row-2col">
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <span class="panel-title">RELATIVE HUMIDITY</span>
+          <div class="panel-legend">
+            <span class="leg-item"><span class="leg-swatch" style="background:var(--c-blue)"></span>DHT22</span>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="humChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-header">
+          <span class="panel-title">ATMOSPHERIC PRESSURE</span>
+          <div class="panel-legend">
+            <span class="leg-item"><span class="leg-swatch" style="background:var(--c-yellow)"></span>BMP085</span>
+          </div>
+        </div>
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="pressChart"></canvas>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ═════════════════ STATUS BAR ════════════════ -->
+  <footer class="statusbar">
+    <span class="sb-item">BROKER: broker.mqttdashboard.com:1883</span>
+    <span class="sb-sep">│</span>
+    <span class="sb-item">TOPIC: wokwi-weather</span>
+    <span class="sb-sep">│</span>
+    <span class="sb-item">INTERVAL: 2 s</span>
+    <span class="sb-sep">│</span>
+    <span class="sb-item" id="uptimeEl">UPTIME: --:--:--</span>
+    <span class="sb-sep">│</span>
+    <span class="sb-item" id="lastUpdateEl">LAST MSG: --</span>
+  </footer>
+
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
