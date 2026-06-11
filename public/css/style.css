@@ -205,7 +205,7 @@ body {
   50%       { opacity: .4; }
 }
 
-/* MQTT pill state overrides */
+/* API pill state overrides */
 #mqttPill.ok   { border-color: rgba(0,255,136,.3); }
 #mqttPill.warn { border-color: rgba(255,170,0,.3); }
 #mqttPill.err  { border-color: rgba(255,51,68,.3); }

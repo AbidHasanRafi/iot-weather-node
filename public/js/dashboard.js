@@ -6,7 +6,7 @@
 // ═══════════════════════════════════════════════════════════
 
 const API = window.location.origin;
-const POLL_INTERVAL_MS  = 2000;   // match IoT device posting rate
+const POLL_INTERVAL_MS  = 1000;   // poll at 1 s — halves worst-case lag vs 2 s device interval
 const MAX_CHART_PTS     = 60;
 const MAX_FEED_ROWS     = 18;
 
@@ -27,9 +27,9 @@ const chartBuf = {
   pressure: [],
 };
 
-// Polling state
-let lastMeasurementNum  = -1;
-let pollTimer           = null;
+// Polling state — use server-side received_at (ms) so restarts never cause skipped readings
+let lastReceivedAt  = 0;
+let pollTimer       = null;
 let consecutiveErrors   = 0;
 let msgCount            = 0;
 
@@ -179,18 +179,14 @@ const mqttLed  = document.getElementById('mqttLed');
 const mqttText = document.getElementById('mqttText');
 const sseLed   = document.getElementById('sseLed');
 
-// Repurposed: now shows whether the dashboard is receiving fresh data
 function setLiveStatus(receiving) {
   sseLed.className = 'led led--small ' + (receiving ? 'ok' : 'warn');
 }
 
-// Shows API ingest status derived from data freshness
 function setIngestStatus(ok) {
-  const cls   = ok ? 'ok'        : 'warn';
-  const label = ok ? 'RECEIVING' : 'WAITING';
-  mqttLed.className    = 'led ' + cls;
-  mqttText.textContent = label;
-  mqttPill.className   = 'hud-pill ' + cls;
+  mqttLed.className    = 'led ' + (ok ? 'ok' : 'warn');
+  mqttText.textContent = ok ? 'LIVE' : 'WAITING';
+  mqttPill.className   = 'hud-pill ' + (ok ? 'ok' : '');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -375,7 +371,7 @@ function loadHistory(history) {
     renderStats('bmpTemp',  'min-bmp-temp', 'max-bmp-temp', 'avg-bmp-temp', 'cnt-bmp-temp');
     renderStats('pressure', 'min-pressure', 'max-pressure', 'avg-pressure', 'cnt-pressure');
 
-    lastMeasurementNum = latest.measurement_num;
+    lastReceivedAt = latest.received_at;
     msgCount = slice.length;
     document.getElementById('msgCount').textContent = msgCount;
     document.getElementById('alertBanner').classList.add('hidden');
@@ -407,10 +403,10 @@ async function pollLatest() {
 
     const reading = await res.json();
 
-    // Skip if we've already rendered this reading
-    if (reading.measurement_num <= lastMeasurementNum) return;
+    // Skip if we've already rendered this reading (compare server timestamp, not device counter)
+    if (reading.received_at <= lastReceivedAt) return;
 
-    lastMeasurementNum = reading.measurement_num;
+    lastReceivedAt = reading.received_at;
     processReading(reading);
 
   } catch (e) {
