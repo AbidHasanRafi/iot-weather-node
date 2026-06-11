@@ -394,16 +394,32 @@ body {
   color: var(--t-primary);
 }
 
-/* Flash on new data */
+/* Card background flash on new data */
 @keyframes card-flash {
   0%   { background-color: var(--bg-card); }
   25%  { background-color: color-mix(in srgb, var(--accent) 8%, var(--bg-card)); }
   100% { background-color: var(--bg-card); }
 }
 
-.metric-card.flash {
-  animation: card-flash .45s ease-out;
+.metric-card.flash { animation: card-flash .45s ease-out; }
+
+/* Big number pop — scale + glow burst when value changes */
+@keyframes value-pop {
+  0%   { transform: scale(1.00); }
+  35%  { transform: scale(1.07); filter: brightness(1.4); }
+  100% { transform: scale(1.00); filter: brightness(1.0); }
 }
+
+.big-value { transform-origin: left center; }
+.big-value.pop { animation: value-pop .32s ease-out; }
+
+/* Elapsed-time pill colour states */
+#elapsedPill.fresh { border-color: rgba(0,255,136,.35); }
+#elapsedPill.fresh #elapsedText { color: var(--s-ok); }
+#elapsedPill.stale { border-color: rgba(255,170,0,.35); }
+#elapsedPill.stale #elapsedText { color: var(--s-warn); }
+#elapsedPill.dead  { border-color: rgba(255,51,68,.35); }
+#elapsedPill.dead  #elapsedText { color: var(--s-err); }
 
 /* ══════════════════════════════════════════════════════════
    ROW LAYOUTS
