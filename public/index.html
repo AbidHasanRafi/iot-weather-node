@@ -27,6 +27,19 @@
     </div>
 
     <nav class="header-nav">
+
+      <!-- Data stream indicator — animated bars when flowing, flat + red when stopped -->
+      <div class="hud-pill stream-pill" id="streamPill">
+        <span class="stream-bars" id="streamBars">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </span>
+        <span class="stream-label" id="streamText">NO DATA</span>
+      </div>
+
       <div class="hud-pill" id="mqttPill">
         <span class="led" id="mqttLed"></span>
         <span class="hud-label">API</span>

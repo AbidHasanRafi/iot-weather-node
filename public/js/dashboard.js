@@ -23,6 +23,7 @@ const chartBuf = { labels: [], dhtTemp: [], bmpTemp: [], humidity: [], pressure:
 let lastUpdateTime  = 0;
 let msgCount        = 0;
 let esRetryMs       = 2000;
+let streamStopTimer = null;
 
 // ═══════════════════════════════════════════════════════════
 //  CLOCK
@@ -140,6 +141,28 @@ const mqttPill = document.getElementById('mqttPill');
 const mqttLed  = document.getElementById('mqttLed');
 const mqttText = document.getElementById('mqttText');
 const sseLed   = document.getElementById('sseLed');
+
+// ═══════════════════════════════════════════════════════════
+//  STREAM INDICATOR
+// ═══════════════════════════════════════════════════════════
+const streamPill = document.getElementById('streamPill');
+const streamBars = document.getElementById('streamBars');
+const streamText = document.getElementById('streamText');
+
+function setStream(active) {
+  clearTimeout(streamStopTimer);
+  if (active) {
+    streamPill.className = 'hud-pill stream-pill streaming';
+    streamBars.className = 'stream-bars streaming';
+    streamText.textContent = 'STREAMING';
+    // Auto-flip to stopped if no reading arrives within 4 s
+    streamStopTimer = setTimeout(() => setStream(false), 4000);
+  } else {
+    streamPill.className = 'hud-pill stream-pill stopped';
+    streamBars.className = 'stream-bars stopped';
+    streamText.textContent = 'NO DATA';
+  }
+}
 
 function setApiStatus(ok) {
   mqttLed.className    = 'led ' + (ok ? 'ok' : 'warn');
@@ -274,6 +297,7 @@ function processReading(r) {
   document.getElementById('lastUpdateEl').textContent = `LAST MSG: ${label}`;
   document.getElementById('alertBanner').classList.add('hidden');
   setApiStatus(true);
+  setStream(true);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -378,4 +402,5 @@ pollUptime();
 // ═══════════════════════════════════════════════════════════
 setApiStatus(false);
 setSseStatus(false);
+setStream(false);
 connectSSE();
